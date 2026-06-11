@@ -1,0 +1,94 @@
+/* ─── Tile Reveal ────────────────────────────────────────────────────────── */
+/*
+ * reveal-pop runs once per tile reveal.
+ * IMPORTANT: Do NOT animate opacity — tiles are always visible, opacity 0→1
+ * causes numbers to appear offset during batch reveals because the element
+ * is in layout but "invisible", then suddenly visible with stacking context.
+ *
+ * End state is transform: none (not scale(1)) so the animation leaves NO
+ * stacking context on the element after it completes.
+ */
+.tile.revealed {
+    animation: reveal-pop 120ms cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes reveal-pop {
+    0%   { transform: scale(0.82); }
+    65%  { transform: scale(1.04); }
+    100% { transform: none; }
+}
+
+/* ─── Flag Bounce ────────────────────────────────────────────────────────── */
+/*
+ * flag-bounce: only animate transform, not opacity.
+ * The flag emoji is rendered by ::after — animating the parent transform
+ * is sufficient and doesn't create opacity stacking issues.
+ */
+.tile.flagged {
+    animation: flag-bounce 180ms cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes flag-bounce {
+    0%   { transform: scale(0.3) rotate(-15deg); }
+    55%  { transform: scale(1.2) rotate(8deg);   }
+    75%  { transform: scale(0.94) rotate(-3deg); }
+    100% { transform: none; }
+}
+
+
+/* ─── Mine Reveal (on loss) ──────────────────────────────────────────────── */
+
+@keyframes mine-reveal {
+    0%   { transform: scale(0.6); opacity: 0; }
+    50%  { transform: scale(1.1); }
+    100% { transform: scale(1);   opacity: 1; }
+}
+
+/* ─── Exploded Mine ──────────────────────────────────────────────────────── */
+
+/*
+    Finite iteration (6 pulses ≈ 1.2s) so the animation stops cleanly
+    rather than burning CPU indefinitely after the game is over.
+    The final forwards fill keeps the end-state box-shadow visible.
+*/
+.tile.mine.exploded {
+    animation: explode-flash 200ms ease-out 6 alternate forwards;
+}
+
+@keyframes explode-flash {
+    0%   { box-shadow: 0 0 8px  #F43F5E; }
+    100% { box-shadow: 0 0 20px #FF0055, inset 0 0 8px #FF0055; }
+}
+
+/* ─── Accessibility: prefers-reduced-motion ──────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-delay:           -1ms   !important;
+        animation-duration:        1ms    !important;
+        animation-iteration-count: 1      !important;
+        background-attachment:     initial !important;
+        scroll-behavior:           auto   !important;
+        transition-duration:       0s     !important;
+        transition-delay:          0s     !important;
+    }
+
+    .tile.revealed {
+        animation:   none !important;
+        opacity:     1    !important;
+        transform:   none !important;
+    }
+
+    .tile.flagged {
+        animation: none !important;
+        transform: none !important;
+        opacity:   1    !important;
+    }
+
+    .tile.mine.exploded {
+        animation:  none                       !important;
+        box-shadow: 0 0 10px #FF0055, inset 0 0 6px #FF0055 !important;
+    }
+}
